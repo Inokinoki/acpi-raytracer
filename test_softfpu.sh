@@ -20,42 +20,42 @@ assert_acpiexec_result () {
 assert_acpiexec_result \
     $AML_FILE \
     "  [Integer] = 000000003EEF1AA0" \
-    "exec \DEV1\MTH1 0 125 7281312"
+    "exec \SFPU\GENF 0 125 7281312"
 
 # ABS positive
 assert_acpiexec_result \
     $AML_FILE \
     "  [Integer] = 000000003EEF1AA0" \
-    "exec \DEV1\MTH2 0x3EEF1AA0"
+    "exec \SFPU\FABS 0x3EEF1AA0"
 # ABS negative
 assert_acpiexec_result \
     $AML_FILE \
     "  [Integer] = 000000003EEF1AA0" \
-    "exec \DEV1\MTH2 0xBEEF1AA0"
+    "exec \SFPU\FABS 0xBEEF1AA0"
 
 # Infinity positive
 assert_acpiexec_result \
     $AML_FILE \
     "  [Integer] = FFFFFFFFFFFFFFFF" \
-    "exec \DEV1\MTH4 0x7f800000"
+    "exec \SFPU\INFI 0x7f800000"
 # Infinity negative
 assert_acpiexec_result \
     $AML_FILE \
     "  [Integer] = FFFFFFFFFFFFFFFF" \
-    "exec \DEV1\MTH4 0xff800000"
+    "exec \SFPU\INFI 0xff800000"
 # Infinity other
 assert_acpiexec_result \
     $AML_FILE \
     "  [Integer] = 0000000000000000" \
-    "exec \DEV1\MTH4 0x7f800001"
+    "exec \SFPU\INFI 0x7f800001"
 
 # Is negative
 assert_acpiexec_result \
     $AML_FILE \
     "  [Integer] = 0000000000000000" \
-    "exec \DEV1\MTH5 0x7f800001"
+    "exec \SFPU\NEG 0x7f800001"
 # Is positive
 assert_acpiexec_result \
     $AML_FILE \
     "  [Integer] = FFFFFFFFFFFFFFFF" \
-    "exec \DEV1\MTH5 0xff800001"
+    "exec \SFPU\NEG 0xff800001"
