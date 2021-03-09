@@ -5,6 +5,9 @@ ppm: ppm.aml
 		| sed -E 's/0000000000000//g' \
 		| sed -E 's/"//' > test.ppm
 
+ppm.aml: ppm.asl
+	iasl ppm.asl
+
 tests: test_softfpu
 	echo "Test run"
 
