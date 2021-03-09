@@ -8,5 +8,8 @@ ppm: ppm.aml
 tests: test_softfpu
 	echo "Test run"
 
-test_softfpu: softfpu.aml test_softfpu.sh
+test_softfpu: acpi-softfpu/softfpu.aml test_softfpu.sh
 	/bin/sh test_softfpu.sh
+
+acpi-softfpu/softfpu.aml: acpi-softfpu/softfpu.asl
+	iasl acpi-softfpu/softfpu.asl

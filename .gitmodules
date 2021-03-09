@@ -1,0 +1,3 @@
+[submodule "acpi-softfpu"]
+	path = acpi-softfpu
+	url = https://github.com/Inokinoki/acpi-softfpu.git
