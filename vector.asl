@@ -1,6 +1,18 @@
 DefinitionBlock ("", "SSDT", 2, "INOKI", "RAYTRACE", 0x00000001)
 {
     External (\SFPU, DeviceObj)
+    External (\SFPU.FADD, MethodObj)
+    External (\SFPU.FSUB, MethodObj)
+    External (\SFPU.FMUL, MethodObj)
+    External (\SFPU.FDIV, MethodObj)
+    External (\SFPU.SQRT, MethodObj)
+
+    External (\SFPU.FEQL, MethodObj)
+    External (\SFPU.FNEQ, MethodObj)
+    External (\SFPU.FGRT, MethodObj)
+    External (\SFPU.FGEQ, MethodObj)
+    External (\SFPU.FLEQ, MethodObj)
+    External (\SFPU.FLET, MethodObj)
 
     Device (VEC) {         // Vector
         Method (MAK0) { // Make a 0 Vector
