@@ -1,5 +1,22 @@
 DefinitionBlock ("", "SSDT", 2, "INOKI", "RAYTRACE", 0x00000001)
 {
+    External (\SFPU.FADD, MethodObj)
+    External (\SFPU.FSUB, MethodObj)
+    External (\SFPU.FMUL, MethodObj)
+    External (\SFPU.FDIV, MethodObj)
+    External (\SFPU.SQRT, MethodObj)
+
+    External (\SFPU.FEQL, MethodObj)
+    External (\SFPU.FNEQ, MethodObj)
+    External (\SFPU.FGRT, MethodObj)
+    External (\SFPU.FGEQ, MethodObj)
+    External (\SFPU.FLEQ, MethodObj)
+    External (\SFPU.FLET, MethodObj)
+    External (\SFPU.SQRT, MethodObj)
+
+    External (\SFPU.F2IN, MethodObj)
+    External (\SFPU.IN2F, MethodObj)
+
     Device (PPM) {         // PPM
         Method (TEST) {     // Output a simple PPM
             Local0 = 255
