@@ -5,8 +5,14 @@ ppm: ppm.aml
 		| sed -E 's/0000000000000//g' \
 		| sed -E 's/"//' > test.ppm
 
+ppm.aml: ppm.asl
+	iasl ppm.asl
+
 tests: test_softfpu
 	echo "Test run"
 
-test_softfpu: softfpu.aml test_softfpu.sh
+test_softfpu: acpi-softfpu/softfpu.aml test_softfpu.sh
 	/bin/sh test_softfpu.sh
+
+acpi-softfpu/softfpu.aml: acpi-softfpu/softfpu.asl
+	iasl acpi-softfpu/softfpu.asl
