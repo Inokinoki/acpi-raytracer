@@ -142,19 +142,19 @@ DefinitionBlock ("", "SSDT", 2, "INOKI", "RAYTRACE", 0x00000001)
             Local0 = MAK0()
         
             // x
-            Local1 = \SFPU.FMUL(derefof(Arg0[1]), derefof(Arg0[2]))
-            Local2 = \SFPU.FMUL(derefof(Arg0[2]), derefof(Arg0[1]))
+            Local1 = \SFPU.FMUL(derefof(Arg0[1]), derefof(Arg1[2]))
+            Local2 = \SFPU.FMUL(derefof(Arg0[2]), derefof(Arg1[1]))
             Local0[0] = \SFPU.FSUB(Local1, Local2)
 
             // y
-            Local1 = \SFPU.FMUL(derefof(Arg0[0]), derefof(Arg0[2]))
+            Local1 = \SFPU.FMUL(derefof(Arg0[0]), derefof(Arg1[2]))
             Local1 = \SFPU.FSUB(0, Local1)
-            Local2 = \SFPU.FMUL(derefof(Arg0[2]), derefof(Arg0[0]))
+            Local2 = \SFPU.FMUL(derefof(Arg0[2]), derefof(Arg1[0]))
             Local0[1] = \SFPU.FSUB(Local1, Local2)
 
             // z
-            Local1 = \SFPU.FMUL(derefof(Arg0[0]), derefof(Arg0[1]))
-            Local2 = \SFPU.FMUL(derefof(Arg0[1]), derefof(Arg0[0]))
+            Local1 = \SFPU.FMUL(derefof(Arg0[0]), derefof(Arg1[1]))
+            Local2 = \SFPU.FMUL(derefof(Arg0[1]), derefof(Arg1[0]))
             Local0[2] = \SFPU.FSUB(Local1, Local2)
             Return (Local0)
         }
