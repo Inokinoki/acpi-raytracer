@@ -113,7 +113,7 @@ DefinitionBlock ("", "SSDT", 2, "INOKI", "RAYTRACE", 0x00000001)
             Local1 = \VEC.VUNI(Local0)
             Local2 = \SFPU.FMUL(0x3f000000, \SFPU.FADD(\SFPU.IN2F(1), \VEC.VECY(Local1)))
             Local3 = \VEC.MAKE(0x3f800000, 0x3f800000, 0x3f800000)    // 1.0 1.0 1.0
-            Local5 = \VEC.TMUL(Local3, Local2)
+            Local5 = \VEC.TMUL(Local3, \SFPU.FSUB(0x3f800000, Local2))
 
             Local4 = \VEC.MAKE(0x3f000000, 0x3f333333, 0x3f800000)    // 0.5 0.7 1.0
             Local6 = \VEC.TMUL(Local4, Local2)
