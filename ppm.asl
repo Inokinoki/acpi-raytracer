@@ -108,6 +108,13 @@ DefinitionBlock ("", "SSDT", 2, "INOKI", "RAYTRACE", 0x00000001)
         }
 
         Method (COLO, 1) {
+            // Hit a sphere
+            Local0 = Package {
+                0, 0, 0xbf800000
+            }
+            if (HSPH(Local0, 0x3f000000, Arg0)) {
+                Return (\VEC.MAKE(0x3f800000, 0, 0))
+            }
             // Use a vec3 package to calculate color
             Local0 = \RAY.RDIR(Arg0)
             Local1 = \VEC.VUNI(Local0)
@@ -120,6 +127,19 @@ DefinitionBlock ("", "SSDT", 2, "INOKI", "RAYTRACE", 0x00000001)
 
             Local7 = \VEC.VADD(Local5, Local6)
             Return (Local7)
+        }
+
+        Method (HSPH, 3) {
+            // Arg0: center, Arg1: radius, Arg2: ray
+            Local0 = \VEC.VSUB(\RAY.RORG(Arg2), Arg0)   // oc
+            Local1 = \VEC.VDOT(\RAY.RORG(Arg2), \RAY.RORG(Arg2))    // a
+            Local2 = \VEC.VDOT(Local0, \RAY.RORG(Arg2))
+            Local3 = \SFPU.FMUL(\SFPU.IN2F(2), Local2)  // b
+            Local4 = \VEC.VDOT(Local0, Local0)
+            Local5 = Local4 - \SFPU.FMUL(Arg1, Arg1)    // c
+            Local6 = \SFPU.FMUL(Local3, Local3)
+            Local7 = \SFPU.FMUL(\SFPU.FMUL(\SFPU.IN2F(4), Local1), Local5)
+            Return (\SFPU.FGRT(\SFPU.FSUB(Local6, Local7), 0))
         }
     }
 }
