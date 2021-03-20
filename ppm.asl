@@ -68,10 +68,10 @@ DefinitionBlock ("", "SSDT", 2, "INOKI", "RAYTRACE", 0x00000001)
                 }
             }
 
-            Local2 = 1
+            Local2 = 255
             while (Local2) {
                 Local3 = 0
-                while (Local3 < 1) {
+                while (Local3 < 255) {
                     Local0 = \SFPU.FDIV(\SFPU.IN2F(Local3), \SFPU.IN2F(255))
                     Local1 = \SFPU.FDIV(\SFPU.IN2F(Local2), \SFPU.IN2F(255))
 
@@ -83,9 +83,9 @@ DefinitionBlock ("", "SSDT", 2, "INOKI", "RAYTRACE", 0x00000001)
                     Local5 = \RAY.MAKE(derefof(Local7[3]), Local4)
                     Local6 = COLO(Local5)
                     printf ("%o %o %o\n",
-                        HEDE(\SFPU.F2IN(\SFPU.FMUL(\SFPU.IN2F(256), derefof(Local6[0])))),
-                        HEDE(\SFPU.F2IN(\SFPU.FMUL(\SFPU.IN2F(256), derefof(Local6[1])))),
-                        HEDE(\SFPU.F2IN(\SFPU.FMUL(\SFPU.IN2F(256), derefof(Local6[2]))))
+                        HEDE(\SFPU.F2IN(\SFPU.FMUL(\SFPU.IN2F(255), derefof(Local6[0])))),
+                        HEDE(\SFPU.F2IN(\SFPU.FMUL(\SFPU.IN2F(255), derefof(Local6[1])))),
+                        HEDE(\SFPU.F2IN(\SFPU.FMUL(\SFPU.IN2F(255), derefof(Local6[2]))))
                     )
                     Local3++
                 }
