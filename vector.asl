@@ -33,22 +33,22 @@ DefinitionBlock ("", "SSDT", 2, "INOKI", "RAYTRACE", 0x00000001)
         }
 
         Method (VECX, 1) {
-            Return (Arg0[0])
+            Return (derefof(Arg0[0]))
         }
         Method (VECY, 1) {
-            Return (Arg0[1])
+            Return (derefof(Arg0[1]))
         }
         Method (VECZ, 1) {
-            Return (Arg0[2])
+            Return (derefof(Arg0[2]))
         }
         Method (COLR, 1) {
-            Return (Arg0[0])
+            Return (derefof(Arg0[0]))
         }
         Method (COLG, 1) {
-            Return (Arg0[1])
+            Return (derefof(Arg0[1]))
         }
         Method (COLB, 1) {
-            Return (Arg0[2])
+            Return (derefof(Arg0[2]))
         }
 
         Method (VADD, 2) {
