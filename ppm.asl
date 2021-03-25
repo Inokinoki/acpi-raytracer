@@ -46,7 +46,7 @@ DefinitionBlock ("", "SSDT", 2, "INOKI", "RAYTRACE", 0x00000001)
     Device (PPM) {         // PPM
         Method (TEST) {     // Output a simple PPM
             printf ("P3\n")
-            printf ("%o %o\n", HEDE(255), HEDE(255))
+            printf ("%o %o\n", HEDE(200), HEDE(100))
             printf ("255")
 
             Local7 = Package() {
@@ -68,12 +68,12 @@ DefinitionBlock ("", "SSDT", 2, "INOKI", "RAYTRACE", 0x00000001)
                 }
             }
 
-            Local2 = 255
+            Local2 = 100    // j
             while (Local2) {
-                Local3 = 0
-                while (Local3 < 255) {
-                    Local0 = \SFPU.FDIV(\SFPU.IN2F(Local3), \SFPU.IN2F(255))
-                    Local1 = \SFPU.FDIV(\SFPU.IN2F(Local2), \SFPU.IN2F(255))
+                Local3 = 0  // i
+                while (Local3 < 200) {
+                    Local0 = \SFPU.FDIV(\SFPU.IN2F(Local3), \SFPU.IN2F(200))
+                    Local1 = \SFPU.FDIV(\SFPU.IN2F(Local2), \SFPU.IN2F(100))
 
                     Local0 = \VEC.TMUL(derefof(Local7[1]), Local0)
                     Local1 = \VEC.TMUL(derefof(Local7[2]), Local1)
@@ -132,11 +132,11 @@ DefinitionBlock ("", "SSDT", 2, "INOKI", "RAYTRACE", 0x00000001)
         Method (HSPH, 3) {
             // Arg0: center, Arg1: radius, Arg2: ray
             Local0 = \VEC.VSUB(\RAY.RORG(Arg2), Arg0)   // oc
-            Local1 = \VEC.VDOT(\RAY.RORG(Arg2), \RAY.RORG(Arg2))    // a
-            Local2 = \VEC.VDOT(Local0, \RAY.RORG(Arg2))
+            Local1 = \VEC.VDOT(\RAY.RDIR(Arg2), \RAY.RDIR(Arg2))    // a
+            Local2 = \VEC.VDOT(Local0, \RAY.RDIR(Arg2))
             Local3 = \SFPU.FMUL(\SFPU.IN2F(2), Local2)  // b
             Local4 = \VEC.VDOT(Local0, Local0)
-            Local5 = Local4 - \SFPU.FMUL(Arg1, Arg1)    // c
+            Local5 = \SFPU.FSUB(Local4, \SFPU.FMUL(Arg1, Arg1))    // c
             Local6 = \SFPU.FMUL(Local3, Local3)
             Local7 = \SFPU.FMUL(\SFPU.FMUL(\SFPU.IN2F(4), Local1), Local5)
             Return (\SFPU.FGRT(\SFPU.FSUB(Local6, Local7), 0))
