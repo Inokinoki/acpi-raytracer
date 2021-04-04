@@ -1,5 +1,25 @@
 DefinitionBlock ("", "SSDT", 2, "INOKI", "RAYTRACE", 0x00000001)
 {
+    External (\VEC.MAK0, MethodObj)
+    External (\VEC.MAKE, MethodObj)
+    External (\VEC.VECX, MethodObj)
+    External (\VEC.VECY, MethodObj)
+    External (\VEC.VECZ, MethodObj)
+    External (\VEC.COLR, MethodObj)
+    External (\VEC.COLG, MethodObj)
+    External (\VEC.COLB, MethodObj)
+    External (\VEC.VADD, MethodObj)
+    External (\VEC.VSUB, MethodObj)
+    External (\VEC.VMUL, MethodObj)
+    External (\VEC.VDIV, MethodObj)
+    External (\VEC.TMUL, MethodObj)
+    External (\VEC.TDIV, MethodObj)
+    External (\VEC.VINV, MethodObj)
+    External (\VEC.VLEN, MethodObj)
+    External (\VEC.VUNI, MethodObj)
+    External (\VEC.VDOT, MethodObj)
+    External (\VEC.VCRS, MethodObj)
+
     Device (RAY) {
         Method (MAK0) {
             Local0 = Package() {
@@ -43,11 +63,12 @@ DefinitionBlock ("", "SSDT", 2, "INOKI", "RAYTRACE", 0x00000001)
 
         Method (PATP, 2) {
             // Arg0: ray, Arg1: t
-            Local0 = Package() {
-                0, 0, 0
-            }
-            // TODO: A + t * B
-            Return (Local0)
+            Local0 = RORG(Arg0) // A
+            Local1 = RDIR(Arg0) // B
+
+            Local2 = \VEC.TMUL(Local1, Arg1)
+            // A + t * B
+            Return (\VEC.VADD(Local0, Local2))
         }
 
         Method (TEST) {
