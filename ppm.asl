@@ -163,10 +163,6 @@ DefinitionBlock ("", "SSDT", 2, "INOKI", "RAYTRACE", 0x00000001)
             Return (Local7)
         }
 
-        Method (HSPH, 3) {
-            
-        }
-
         // Check HIT on each object
         Method (HITW, 3) {
             // Arg0: ray, Arg1: t_min, Arg2: t_max
@@ -174,9 +170,9 @@ DefinitionBlock ("", "SSDT", 2, "INOKI", "RAYTRACE", 0x00000001)
             Local1 = Arg2   // Closest
             Local2 = 0
             while (Local2 < HCNT) {
-                if (derefof(HITL[Local2][0]) == HTSP) {
+                if (derefof(derefof(HITL[Local2])[0]) == HTSP) {
                     // Is a sphere
-                    if (HISP(HITL[Local2], Arg0, Arg1, Local1)) {
+                    if (HISP(derefof(HITL[Local2]), Arg0, Arg1, Local1)) {
                         Local0 = 1  // Hit sth
                         Local1 = derefof(HIT1[0])
 
@@ -223,20 +219,43 @@ DefinitionBlock ("", "SSDT", 2, "INOKI", "RAYTRACE", 0x00000001)
             } else {
                 // Has at least one root, return the near one
                 // Local0: discriminant, Local1: a, Local3: b
-                // TODO
                 Local2 = \SFPU.FSUB(0, Local3)
                 Local4 = \SFPU.SQRT(Local0)
                 Local5 = \SFPU.FSUB(Local2, Local4)
                 Local6 = \SFPU.FMUL(0x40000000, Local1)
                 Local7 = \SFPU.FDIV(Local5, Local6)
-                if (\SFPU.FGRT(Local7, Arg2) && \SFPU.FGRT(Local7, Arg3))
+                if (\SFPU.FGRT(Local7, Arg2) && \SFPU.FLET(Local7, Arg3)) {
+                    // Return rec
+                    HIT1[0] = Local7
+                    Local7 = \RAY.PATP(Arg1, Local7)
+                    HIT1[1] = derefof(Local7[0])
+                    HIT1[2] = derefof(Local7[1])
+                    HIT1[3] = derefof(Local7[2])
+                    Local7 = \VEC.TDIV(\VEC.VSUB(Local7, SPHC(Arg0)), SPHR(Arg0))
+                    HIT1[4] = derefof(Local7[0])
+                    HIT1[5] = derefof(Local7[1])
+                    HIT1[6] = derefof(Local7[2])
+                    Return (1)
+                }
 
-                Local2 = \VEC.VSUB(\RAY.PATP(Arg0, Local1), Local0)
-                Local2 = \VEC.VUNI(Local2)
-                Local3 = \VEC.MAKE(\SFPU.FADD(\VEC.VECX(Local2), 0x3f800000), \SFPU.FADD(\VEC.VECY(Local2), 0x3f800000), \SFPU.FADD(\VEC.VECZ(Local2), 0x3f800000))
-                Return (\VEC.TMUL(Local3, 0x3f000000))
-                Return ()
+                // Try another root
+                Local5 = \SFPU.FADD(Local2, Local4)
+                Local7 = \SFPU.FDIV(Local5, Local6)
+                if (\SFPU.FGRT(Local7, Arg2) && \SFPU.FLET(Local7, Arg3)) {
+                    // Return rec
+                    HIT1[0] = Local7
+                    Local7 = \RAY.PATP(Arg1, Local7)
+                    HIT1[1] = derefof(Local7[0])
+                    HIT1[2] = derefof(Local7[1])
+                    HIT1[3] = derefof(Local7[2])
+                    Local7 = \VEC.TDIV(\VEC.VSUB(Local7, SPHC(Arg0)), SPHR(Arg0))
+                    HIT1[4] = derefof(Local7[0])
+                    HIT1[5] = derefof(Local7[1])
+                    HIT1[6] = derefof(Local7[2])
+                    Return (1)
+                }
             }
+            Return (0)
         }
     }
 }
