@@ -1,6 +1,5 @@
 DefinitionBlock ("", "SSDT", 2, "INOKI", "RAYTRACE", 0x00000001)
 {
-    External (\SFPU.FINV, MethodObj)
     External (\SFPU.FADD, MethodObj)
     External (\SFPU.FSUB, MethodObj)
     External (\SFPU.FMUL, MethodObj)
@@ -115,7 +114,7 @@ DefinitionBlock ("", "SSDT", 2, "INOKI", "RAYTRACE", 0x00000001)
             }
             Local1 = HSPH(Local0, 0x3f000000, Arg0)
             if (\SFPU.FGRT(Local1, 0)) {
-                Local2 = \VEC.VSUB(\RAY.PATP(Local1), Local0)
+                Local2 = \VEC.VSUB(\RAY.PATP(Arg0, Local1), Local0)
                 Local2 = \VEC.VUNI(Local2)
                 Local3 = \VEC.MAKE(\SFPU.FADD(\VEC.VECX(Local2), 0x3f800000), \SFPU.FADD(\VEC.VECY(Local2), 0x3f800000), \SFPU.FADD(\VEC.VECZ(Local2), 0x3f800000))
                 Return (\VEC.TMUL(Local3, 0x3f000000))
@@ -147,10 +146,12 @@ DefinitionBlock ("", "SSDT", 2, "INOKI", "RAYTRACE", 0x00000001)
 
             Local0 = \SFPU.FSUB(Local6, Local7)     // discriminant
             if (\SFPU.FLET(Local0, 0)) {
+                // No root
                 Return (0xbf800000)
             } else {
+                // Has at least one root, return the near one
                 // Local0: discriminant, Local1: a, Local3: b
-                Local2 = \SFPU.FINV(Local3)
+                Local2 = \SFPU.FSUB(0, Local3)
                 Local4 = \SFPU.SQRT(Local0)
                 Local5 = \SFPU.FSUB(Local2, Local4)
                 Local6 = \SFPU.FMUL(0x40000000, Local1)
