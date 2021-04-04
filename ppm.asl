@@ -151,8 +151,12 @@ DefinitionBlock ("", "SSDT", 2, "INOKI", "RAYTRACE", 0x00000001)
         Method (COLO, 1) {
             // Hit sth
             if (HITW(Arg0, 0, 0x55555555)) {
-                Local0 = \VEC.MAKE(derefof(HITR[4]), derefof(HITR[5]), derefof(HITR[6]))
-                Local1 = \VEC.MAKE(\SFPU.FADD(\VEC.VECX(Local0), 0x3f800000), \SFPU.FADD(\VEC.VECY(Local0), 0x3f800000), \SFPU.FADD(\VEC.VECZ(Local0), 0x3f800000))
+                Local0 = \VEC.MAKE(derefof(HITR[4]), derefof(HITR[5]), derefof(HITR[6]))    // Normal
+                Local2 = \VEC.MAKE(derefof(HITR[1]), derefof(HITR[2]), derefof(HITR[3]))    // P
+                Local3 = \VEC.VADD(Local2, Local0)  // Target
+                Local4 = \VEC.VADD(Local3, RIUS())
+                Local5 = \RAY.MAKE(Local2, \VEC.VSUB(Local4, Local2))   // Ray
+                Local1 = COLO(Local5)   // Reflection
                 Return (\VEC.TMUL(Local1, 0x3f000000))
             }
             // Use a vec3 package to calculate color
@@ -273,6 +277,18 @@ DefinitionBlock ("", "SSDT", 2, "INOKI", "RAYTRACE", 0x00000001)
             // Ray
             Local5 = \RAY.MAKE(derefof(CVEC[3]), Local4)
             Return (Local5)
+        }
+
+        Method (RIUS) {
+            // Random in unit sphere
+            Local0 = \VEC.MAK0()
+            Local1 = 0
+            while (\SFPU.FGEQ(Local1, 0x3f800000)) {
+                Local2 = \VEC.MAKE(\SFPU.FDIV(\SFPU.IN2F(\SRNG.NEXT()), \SFPU.IN2F(32767)), \SFPU.FDIV(\SFPU.IN2F(\SRNG.NEXT()), \SFPU.IN2F(32767)), \SFPU.FDIV(\SFPU.IN2F(\SRNG.NEXT()), \SFPU.IN2F(32767)))
+                Local0 = \VEC.VSUB(Local2, \VEC.MAKE(0x3f800000, 0x3f800000, 0x3f800000))
+                Local1 = \VEC.VLEN(Local0)
+            }
+            Return (Local0)
         }
     }
 }
