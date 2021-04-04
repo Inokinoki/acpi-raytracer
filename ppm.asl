@@ -66,7 +66,7 @@ DefinitionBlock ("", "SSDT", 2, "INOKI", "RAYTRACE", 0x00000001)
         // Name Hittable Type
         Name (HTSP, 0x01)
         // Name Hittable Count
-        Name (HCNT, 1)
+        Name (HCNT, 2)
 
         // Hittable list
         Name (HITL, Package() {
@@ -77,6 +77,14 @@ DefinitionBlock ("", "SSDT", 2, "INOKI", "RAYTRACE", 0x00000001)
                 0, 0, 0xbf800000,
                 // r
                 0x3f000000
+            },
+            Package() {
+                // type: sphere
+                0x01,
+                // center: 0, -100.5, 100
+                0, 0xc2c90000, 0xbf800000,
+                // r
+                0x42c80000
             }
         })
 
