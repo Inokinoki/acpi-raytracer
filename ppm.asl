@@ -44,29 +44,29 @@ DefinitionBlock ("", "SSDT", 2, "INOKI", "RAYTRACE", 0x00000001)
     External (\VEC.VCRS, MethodObj)
 
     Device (PPM) {         // PPM
+        Name (CVEC, Package() {
+            // Lower Left corner: -2, -1, -1
+            Package() {
+                0xc0000000, 0xbf800000, 0xbf800000
+            },
+            // Horizontal: 4, 0, 0
+            Package() {
+                0x40800000, 0, 0
+            },
+            // Vertical: 0, 2, 0
+            Package() {
+                0, 0x40000000, 0
+            },
+            // Origin: 0, 0, 0
+            Package() {
+                0, 0, 0
+            }
+        })
+
         Method (TEST) {     // Output a simple PPM
             printf ("P3\n")
             printf ("%o %o\n", HEDE(200), HEDE(100))
             printf ("255")
-
-            Local7 = Package() {
-                // Lower Left corner: -2, -1, -1
-                Package() {
-                    0xc0000000, 0xbf800000, 0xbf800000
-                },
-                // Horizontal: 4, 0, 0
-                Package() {
-                    0x40800000, 0, 0
-                },
-                // Vertical: 0, 2, 0
-                Package() {
-                    0, 0x40000000, 0
-                },
-                // Origin: 0, 0, 0
-                Package() {
-                    0, 0, 0
-                }
-            }
 
             Local2 = 100    // j
             while (Local2) {
@@ -75,12 +75,12 @@ DefinitionBlock ("", "SSDT", 2, "INOKI", "RAYTRACE", 0x00000001)
                     Local0 = \SFPU.FDIV(\SFPU.IN2F(Local3), \SFPU.IN2F(200))
                     Local1 = \SFPU.FDIV(\SFPU.IN2F(Local2), \SFPU.IN2F(100))
 
-                    Local0 = \VEC.TMUL(derefof(Local7[1]), Local0)
-                    Local1 = \VEC.TMUL(derefof(Local7[2]), Local1)
-                    Local4 = \VEC.VADD(derefof(Local7[0]), Local0)
+                    Local0 = \VEC.TMUL(derefof(CVEC[1]), Local0)
+                    Local1 = \VEC.TMUL(derefof(CVEC[2]), Local1)
+                    Local4 = \VEC.VADD(derefof(CVEC[0]), Local0)
                     Local4 = \VEC.VADD(Local4, Local1)
                     // Ray
-                    Local5 = \RAY.MAKE(derefof(Local7[3]), Local4)
+                    Local5 = \RAY.MAKE(derefof(CVEC[3]), Local4)
                     Local6 = COLO(Local5)
                     printf ("%o %o %o\n",
                         HEDE(\SFPU.F2IN(\SFPU.FMUL(\SFPU.IN2F(255), derefof(Local6[0])))),
