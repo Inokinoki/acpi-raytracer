@@ -1,5 +1,8 @@
 DefinitionBlock ("", "SSDT", 2, "INOKI", "RAYTRACE", 0x00000001)
 {
+    External (\SRNG.NEXT, MethodObj)
+    External (\SRNG.SRNG, MethodObj)
+
     External (\SFPU.FADD, MethodObj)
     External (\SFPU.FSUB, MethodObj)
     External (\SFPU.FMUL, MethodObj)
