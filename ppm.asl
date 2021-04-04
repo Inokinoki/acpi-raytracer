@@ -1,5 +1,6 @@
 DefinitionBlock ("", "SSDT", 2, "INOKI", "RAYTRACE", 0x00000001)
 {
+    External (\SFPU.FINV, MethodObj)
     External (\SFPU.FADD, MethodObj)
     External (\SFPU.FSUB, MethodObj)
     External (\SFPU.FMUL, MethodObj)
@@ -112,8 +113,12 @@ DefinitionBlock ("", "SSDT", 2, "INOKI", "RAYTRACE", 0x00000001)
             Local0 = Package {
                 0, 0, 0xbf800000
             }
-            if (HSPH(Local0, 0x3f000000, Arg0)) {
-                Return (\VEC.MAKE(0x3f800000, 0, 0))
+            Local1 = HSPH(Local0, 0x3f000000, Arg0)
+            if (\SFPU.FGRT(Local1, 0)) {
+                Local2 = \VEC.VSUB(\RAY.PATP(Local1), Local0)
+                Local2 = \VEC.VUNI(Local2)
+                Local3 = \VEC.MAKE(\SFPU.FADD(\VEC.VECX(Local2), 0x3f800000), \SFPU.FADD(\VEC.VECY(Local2), 0x3f800000), \SFPU.FADD(\VEC.VECZ(Local2), 0x3f800000))
+                Return (\VEC.TMUL(Local3, 0x3f000000))
             }
             // Use a vec3 package to calculate color
             Local0 = \RAY.RDIR(Arg0)
@@ -139,7 +144,18 @@ DefinitionBlock ("", "SSDT", 2, "INOKI", "RAYTRACE", 0x00000001)
             Local5 = \SFPU.FSUB(Local4, \SFPU.FMUL(Arg1, Arg1))    // c
             Local6 = \SFPU.FMUL(Local3, Local3)
             Local7 = \SFPU.FMUL(\SFPU.FMUL(\SFPU.IN2F(4), Local1), Local5)
-            Return (\SFPU.FGRT(\SFPU.FSUB(Local6, Local7), 0))
+
+            Local0 = \SFPU.FSUB(Local6, Local7)     // discriminant
+            if (\SFPU.FLET(Local0, 0)) {
+                Return (0xbf800000)
+            } else {
+                // Local0: discriminant, Local1: a, Local3: b
+                Local2 = \SFPU.FINV(Local3)
+                Local4 = \SFPU.SQRT(Local0)
+                Local5 = \SFPU.FSUB(Local2, Local4)
+                Local6 = \SFPU.FMUL(0x40000000, Local1)
+                Return (\SFPU.FDIV(Local5, Local6))
+            }
         }
     }
 }
