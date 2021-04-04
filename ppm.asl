@@ -117,13 +117,8 @@ DefinitionBlock ("", "SSDT", 2, "INOKI", "RAYTRACE", 0x00000001)
                 while (Local3 < 200) {
                     Local0 = \SFPU.FDIV(\SFPU.IN2F(Local3), \SFPU.IN2F(200))
                     Local1 = \SFPU.FDIV(\SFPU.IN2F(Local2), \SFPU.IN2F(100))
+                    Local5 = CRAY(Local0, Local1)
 
-                    Local0 = \VEC.TMUL(derefof(CVEC[1]), Local0)
-                    Local1 = \VEC.TMUL(derefof(CVEC[2]), Local1)
-                    Local4 = \VEC.VADD(derefof(CVEC[0]), Local0)
-                    Local4 = \VEC.VADD(Local4, Local1)
-                    // Ray
-                    Local5 = \RAY.MAKE(derefof(CVEC[3]), Local4)
                     Local6 = COLO(Local5)
                     printf ("%o %o %o\n",
                         HEDE(\SFPU.F2IN(\SFPU.FMUL(\SFPU.IN2F(255), derefof(Local6[0])))),
@@ -264,6 +259,17 @@ DefinitionBlock ("", "SSDT", 2, "INOKI", "RAYTRACE", 0x00000001)
                 }
             }
             Return (0)
+        }
+
+        Method (CRAY, 2) {
+            // Get ray
+            Local0 = \VEC.TMUL(derefof(CVEC[1]), Arg0)
+            Local1 = \VEC.TMUL(derefof(CVEC[2]), Arg1)
+            Local4 = \VEC.VADD(derefof(CVEC[0]), Local0)
+            Local4 = \VEC.VADD(Local4, Local1)
+            // Ray
+            Local5 = \RAY.MAKE(derefof(CVEC[3]), Local4)
+            Return (Local5)
         }
     }
 }
