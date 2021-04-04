@@ -123,6 +123,8 @@ DefinitionBlock ("", "SSDT", 2, "INOKI", "RAYTRACE", 0x00000001)
                     Local5 = CRAY(Local0, Local1)
 
                     Local6 = COLO(Local5)
+                    // For better diffuse shadowing
+                    Local6 = \VEC.MAKE(\SFPU.SQRT(derefof(Local6[0])), \SFPU.SQRT(derefof(Local6[1])), \SFPU.SQRT(derefof(Local6[2])))
                     printf ("%o %o %o\n",
                         HEDE(\SFPU.F2IN(\SFPU.FMUL(\SFPU.IN2F(255), derefof(Local6[0])))),
                         HEDE(\SFPU.F2IN(\SFPU.FMUL(\SFPU.IN2F(255), derefof(Local6[1])))),
@@ -150,7 +152,7 @@ DefinitionBlock ("", "SSDT", 2, "INOKI", "RAYTRACE", 0x00000001)
 
         Method (COLO, 1) {
             // Hit sth
-            if (HITW(Arg0, 0, 0x55555555)) {
+            if (HITW(Arg0, 0x33d6bf95, 0x55555555)) {
                 Local0 = \VEC.MAKE(derefof(HITR[4]), derefof(HITR[5]), derefof(HITR[6]))    // Normal
                 Local2 = \VEC.MAKE(derefof(HITR[1]), derefof(HITR[2]), derefof(HITR[3]))    // P
                 Local3 = \VEC.VADD(Local2, Local0)  // Target
