@@ -5,6 +5,13 @@ ppm: ppm.aml ray.aml acpi-softfpu/softfpu.aml vector.aml rng.aml
 	acpiexec -da -to 3600 -b "exec \PPM\TEST" ppm.aml ray.aml acpi-softfpu/softfpu.aml vector.aml rng.aml | grep "ACPI Debug" \
 		| sed -E "s/ACPI Debug:  \"//" \
 		| sed -E 's/0000000000000//g' \
+		| sed -E 's/[0-9A-F]{14}/0/g' \
+		| sed -E 's/"//' > test.ppm
+
+ppm-debug: ppm.aml ray.aml acpi-softfpu/softfpu.aml vector.aml rng.aml
+	acpiexec -da -to 3600 -b "exec \PPM\TEST" ppm.aml ray.aml acpi-softfpu/softfpu.aml vector.aml rng.aml | grep "ACPI Debug" \
+		| sed -E "s/ACPI Debug:  \"//" \
+		| sed -E 's/0000000000000//g' \
 		| sed -E 's/"//' > test.ppm
 
 ray.aml: ray.asl
