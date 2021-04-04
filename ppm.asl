@@ -63,6 +63,41 @@ DefinitionBlock ("", "SSDT", 2, "INOKI", "RAYTRACE", 0x00000001)
             }
         })
 
+        // Name Hittable Type
+        Name (HTSP, 0x01)
+        // Name Hittable Count
+        Name (HCNT, 1)
+
+        // Hittable list
+        Name (HITL, Package() {
+            Package() {
+                // type: sphere
+                0x01,
+                // center
+                0, 0, 0xbf800000,
+                // r
+                0x3f000000
+            }
+        })
+
+        // Hit record as a return value
+        Name (HITR, Package() {
+            // t
+            0x0,
+            // p
+            0, 0, 0,
+            // normal
+            0, 0, 0
+        })
+        Name (HIT1, Package() {
+            // t
+            0x0,
+            // p
+            0, 0, 0,
+            // normal
+            0, 0, 0
+        })
+
         Method (TEST) {     // Output a simple PPM
             printf ("P3\n")
             printf ("%o %o\n", HEDE(200), HEDE(100))
@@ -108,16 +143,11 @@ DefinitionBlock ("", "SSDT", 2, "INOKI", "RAYTRACE", 0x00000001)
         }
 
         Method (COLO, 1) {
-            // Hit a sphere
-            Local0 = Package {
-                0, 0, 0xbf800000
-            }
-            Local1 = HSPH(Local0, 0x3f000000, Arg0)
-            if (\SFPU.FGRT(Local1, 0)) {
-                Local2 = \VEC.VSUB(\RAY.PATP(Arg0, Local1), Local0)
-                Local2 = \VEC.VUNI(Local2)
-                Local3 = \VEC.MAKE(\SFPU.FADD(\VEC.VECX(Local2), 0x3f800000), \SFPU.FADD(\VEC.VECY(Local2), 0x3f800000), \SFPU.FADD(\VEC.VECZ(Local2), 0x3f800000))
-                Return (\VEC.TMUL(Local3, 0x3f000000))
+            // Hit sth
+            if (HITW(Arg0, 0, 0x55555555)) {
+                Local0 = \VEC.MAKE(derefof(HITR[4]), derefof(HITR[5]), derefof(HITR[6]))
+                Local1 = \VEC.MAKE(\SFPU.FADD(\VEC.VECX(Local0), 0x3f800000), \SFPU.FADD(\VEC.VECY(Local0), 0x3f800000), \SFPU.FADD(\VEC.VECZ(Local0), 0x3f800000))
+                Return (\VEC.TMUL(Local1, 0x3f000000))
             }
             // Use a vec3 package to calculate color
             Local0 = \RAY.RDIR(Arg0)
@@ -134,28 +164,78 @@ DefinitionBlock ("", "SSDT", 2, "INOKI", "RAYTRACE", 0x00000001)
         }
 
         Method (HSPH, 3) {
-            // Arg0: center, Arg1: radius, Arg2: ray
-            Local0 = \VEC.VSUB(\RAY.RORG(Arg2), Arg0)   // oc
-            Local1 = \VEC.VDOT(\RAY.RDIR(Arg2), \RAY.RDIR(Arg2))    // a
-            Local2 = \VEC.VDOT(Local0, \RAY.RDIR(Arg2))
+            
+        }
+
+        // Check HIT on each object
+        Method (HITW, 3) {
+            // Arg0: ray, Arg1: t_min, Arg2: t_max
+            Local0 = 0  // Hit anything
+            Local1 = Arg2   // Closest
+            Local2 = 0
+            while (Local2 < HCNT) {
+                if (derefof(HITL[Local2][0]) == HTSP) {
+                    // Is a sphere
+                    if (HISP(HITL[Local2], Arg0, Arg1, Local1)) {
+                        Local0 = 1  // Hit sth
+                        Local1 = derefof(HIT1[0])
+
+                        // Rec = temp Rec
+                        HITR[0] = derefof(HIT1[0])
+                        HITR[1] = derefof(HIT1[1])
+                        HITR[2] = derefof(HIT1[2])
+                        HITR[3] = derefof(HIT1[3])
+                        HITR[4] = derefof(HIT1[4])
+                        HITR[5] = derefof(HIT1[5])
+                        HITR[6] = derefof(HIT1[6])
+                    }
+                }
+                Local2 = Local2 + 1
+            }
+            Return (Local0)
+        }
+
+        Method (SPHC, 1) {
+            // Sphere center
+            Return (\VEC.MAKE(derefof(Arg0[1]), derefof(Arg0[2]), derefof(Arg0[3])))
+        }
+
+        Method (SPHR, 1) {
+            // Sphere radius
+            Return (derefof(Arg0[4]))
+        }
+
+        Method (HISP, 4) {
+            // Arg0: sphere, Arg1: ray, Arg2: t_min, Arg3: t_max
+            Local0 = \VEC.VSUB(\RAY.RORG(Arg1), SPHC(Arg0))   // oc
+            Local1 = \VEC.VDOT(\RAY.RDIR(Arg1), \RAY.RDIR(Arg1))    // a
+            Local2 = \VEC.VDOT(Local0, \RAY.RDIR(Arg1))
             Local3 = \SFPU.FMUL(\SFPU.IN2F(2), Local2)  // b
             Local4 = \VEC.VDOT(Local0, Local0)
-            Local5 = \SFPU.FSUB(Local4, \SFPU.FMUL(Arg1, Arg1))    // c
+            Local5 = \SFPU.FSUB(Local4, \SFPU.FMUL(SPHR(Arg0), SPHR(Arg0)))    // c
             Local6 = \SFPU.FMUL(Local3, Local3)
             Local7 = \SFPU.FMUL(\SFPU.FMUL(\SFPU.IN2F(4), Local1), Local5)
 
             Local0 = \SFPU.FSUB(Local6, Local7)     // discriminant
             if (\SFPU.FLET(Local0, 0)) {
                 // No root
-                Return (0xbf800000)
+                Return (0)
             } else {
                 // Has at least one root, return the near one
                 // Local0: discriminant, Local1: a, Local3: b
+                // TODO
                 Local2 = \SFPU.FSUB(0, Local3)
                 Local4 = \SFPU.SQRT(Local0)
                 Local5 = \SFPU.FSUB(Local2, Local4)
                 Local6 = \SFPU.FMUL(0x40000000, Local1)
-                Return (\SFPU.FDIV(Local5, Local6))
+                Local7 = \SFPU.FDIV(Local5, Local6)
+                if (\SFPU.FGRT(Local7, Arg2) && \SFPU.FGRT(Local7, Arg3))
+
+                Local2 = \VEC.VSUB(\RAY.PATP(Arg0, Local1), Local0)
+                Local2 = \VEC.VUNI(Local2)
+                Local3 = \VEC.MAKE(\SFPU.FADD(\VEC.VECX(Local2), 0x3f800000), \SFPU.FADD(\VEC.VECY(Local2), 0x3f800000), \SFPU.FADD(\VEC.VECZ(Local2), 0x3f800000))
+                Return (\VEC.TMUL(Local3, 0x3f000000))
+                Return ()
             }
         }
     }
