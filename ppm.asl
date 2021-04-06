@@ -1,5 +1,8 @@
 DefinitionBlock ("", "SSDT", 2, "INOKI", "RAYTRACE", 0x00000001)
 {
+    External (\SRNG.NEXT, MethodObj)
+    External (\SRNG.SRNG, MethodObj)
+
     External (\SFPU.FADD, MethodObj)
     External (\SFPU.FSUB, MethodObj)
     External (\SFPU.FMUL, MethodObj)
@@ -66,7 +69,7 @@ DefinitionBlock ("", "SSDT", 2, "INOKI", "RAYTRACE", 0x00000001)
         // Name Hittable Type
         Name (HTSP, 0x01)
         // Name Hittable Count
-        Name (HCNT, 2)
+        Name (HCNT, 4)
 
         // Hittable list
         Name (HITL, Package() {
@@ -76,17 +79,50 @@ DefinitionBlock ("", "SSDT", 2, "INOKI", "RAYTRACE", 0x00000001)
                 // center
                 0, 0, 0xbf800000,
                 // r
-                0x3f000000
+                0x3f000000,
+                // Material:
+                //      Diffusion: albedo
+                0x3f4ccccd, 0x3e99999a, 0x3e99999a, 0
             },
             Package() {
                 // type: sphere
-                0x01,
+                0x001,
                 // center: 0, -100.5, 100
                 0, 0xc2c90000, 0xbf800000,
                 // r
-                0x42c80000
+                0x42c80000,
+                // Material:
+                //      Diffusion: albedo
+                0x3f4ccccd, 0x3f4ccccd, 0, 0
+            },
+            Package() {
+                // type: sphere
+                0x101,
+                // center
+                0x3f800000, 0, 0xbf800000,
+                // r
+                0x3f000000,
+                // Material:
+                //      Metal: albedo, fuzz - 0.8 0.6 0.2 1.0
+                0x3f4ccccd, 0x3f19999a, 0x3e4ccccd, 0x3f800000
+            },
+            Package() {
+                // type: sphere
+                0x101,
+                // center
+                0xbf800000, 0, 0xbf800000,
+                // r
+                0x3f000000,
+                // Material:
+                //      Metal: albedo, fuzz - 0.8 0.8 0.8 0.3
+                0x3f4ccccd, 0x3f4ccccd, 0x3f4ccccd, 0x3e99999a
             }
         })
+
+        // Material types
+        Name (MASK, 0xF00)  // Mask
+        Name (MTRD, 0x000)  // Diffusion
+        Name (MTRM, 0x100)  // Metal
 
         // Hit record as a return value
         Name (HITR, Package() {
@@ -95,7 +131,9 @@ DefinitionBlock ("", "SSDT", 2, "INOKI", "RAYTRACE", 0x00000001)
             // p
             0, 0, 0,
             // normal
-            0, 0, 0
+            0, 0, 0,
+            // index
+            0
         })
         Name (HIT1, Package() {
             // t
@@ -103,7 +141,9 @@ DefinitionBlock ("", "SSDT", 2, "INOKI", "RAYTRACE", 0x00000001)
             // p
             0, 0, 0,
             // normal
-            0, 0, 0
+            0, 0, 0,
+            // index
+            0
         })
 
         Method (TEST) {     // Output a simple PPM
@@ -119,7 +159,9 @@ DefinitionBlock ("", "SSDT", 2, "INOKI", "RAYTRACE", 0x00000001)
                     Local1 = \SFPU.FDIV(\SFPU.IN2F(Local2), \SFPU.IN2F(100))
                     Local5 = CRAY(Local0, Local1)
 
-                    Local6 = COLO(Local5)
+                    Local6 = COLO(Local5, 0)
+                    // For better diffuse shadowing
+                    Local6 = \VEC.MAKE(\SFPU.SQRT(derefof(Local6[0])), \SFPU.SQRT(derefof(Local6[1])), \SFPU.SQRT(derefof(Local6[2])))
                     printf ("%o %o %o\n",
                         HEDE(\SFPU.F2IN(\SFPU.FMUL(\SFPU.IN2F(255), derefof(Local6[0])))),
                         HEDE(\SFPU.F2IN(\SFPU.FMUL(\SFPU.IN2F(255), derefof(Local6[1])))),
@@ -145,12 +187,82 @@ DefinitionBlock ("", "SSDT", 2, "INOKI", "RAYTRACE", 0x00000001)
             Return (Local0)
         }
 
-        Method (COLO, 1) {
+        Method (COLO, 2) {
             // Hit sth
-            if (HITW(Arg0, 0, 0x55555555)) {
-                Local0 = \VEC.MAKE(derefof(HITR[4]), derefof(HITR[5]), derefof(HITR[6]))
-                Local1 = \VEC.MAKE(\SFPU.FADD(\VEC.VECX(Local0), 0x3f800000), \SFPU.FADD(\VEC.VECY(Local0), 0x3f800000), \SFPU.FADD(\VEC.VECZ(Local0), 0x3f800000))
-                Return (\VEC.TMUL(Local1, 0x3f000000))
+            if (HITW(Arg0, 0x33d6bf95, 0x55555555)) {
+                // Local0 = \VEC.MAK0()
+                // Local0[0] = derefof(Arg0[5])
+                // Local0[1] = derefof(Arg0[6])
+                // Local0[2] = derefof(Arg0[7])
+                if (Arg1 < 50) {
+                    Local7 = derefof(HITR[7])   // Index
+                    Local6 = derefof(HITL[Local7])  // Object
+                    Local5 = Package () {
+                        // t
+                        0x0,
+                        // p
+                        0, 0, 0,
+                        // normal
+                        0, 0, 0,
+                        // index
+                        0
+                    }
+                    Local5[0] = derefof(HITR[0])
+                    Local5[1] = derefof(HITR[1])
+                    Local5[2] = derefof(HITR[2])
+                    Local5[3] = derefof(HITR[3])
+                    Local5[4] = derefof(HITR[4])
+                    Local5[5] = derefof(HITR[5])
+                    Local5[6] = derefof(HITR[6])
+                    Local5[7] = derefof(HITR[7])
+                    if ((derefof(Local6[0]) & MASK) == MTRD) {
+                        // Diffusion
+                        if (MHDD(Arg0, Local5)) {
+                            Local2 = \RAY.MAK0()
+                            Local2[0] = derefof(SCTT[0])
+                            Local2[1] = derefof(SCTT[1])
+                            Local2[2] = derefof(SCTT[2])
+                            Local2[3] = derefof(SCTT[3])
+                            Local2[4] = derefof(SCTT[4])
+                            Local2[5] = derefof(SCTT[5])
+
+                            Local1 = COLO(Local2, Arg1 + 1)
+                            Local3 = \VEC.MAKE(
+                                \SFPU.FMUL(\VEC.VECX(Local1), \VEC.VECX(ATTN)),
+                                \SFPU.FMUL(\VEC.VECY(Local1), \VEC.VECX(ATTN)),
+                                \SFPU.FMUL(\VEC.VECZ(Local1), \VEC.VECX(ATTN))
+                            )
+                            Return (Local3)
+                        } else {
+                            Return (\VEC.MAK0())
+                        }
+                    }
+
+                    if ((derefof(Local6[0]) & MASK) == MTRM) {
+                        // Metal
+                        if (MHDM(Arg0, Local5)) {
+                            Local2 = \RAY.MAK0()
+                            Local2[0] = derefof(SCTT[0])
+                            Local2[1] = derefof(SCTT[1])
+                            Local2[2] = derefof(SCTT[2])
+                            Local2[3] = derefof(SCTT[3])
+                            Local2[4] = derefof(SCTT[4])
+                            Local2[5] = derefof(SCTT[5])
+
+                            Local1 = COLO(Local2, Arg1 + 1)
+                            Local3 = \VEC.MAKE(
+                                \SFPU.FMUL(\VEC.VECX(Local1), \VEC.VECX(ATTN)),
+                                \SFPU.FMUL(\VEC.VECY(Local1), \VEC.VECX(ATTN)),
+                                \SFPU.FMUL(\VEC.VECZ(Local1), \VEC.VECX(ATTN))
+                            )
+                            Return (Local3)
+                        } else {
+                            Return (\VEC.MAK0())
+                        }
+                    }
+                } else {
+                    Return (\VEC.MAK0())
+                }
             }
             // Use a vec3 package to calculate color
             Local0 = \RAY.RDIR(Arg0)
@@ -173,7 +285,7 @@ DefinitionBlock ("", "SSDT", 2, "INOKI", "RAYTRACE", 0x00000001)
             Local1 = Arg2   // Closest
             Local2 = 0
             while (Local2 < HCNT) {
-                if (derefof(derefof(HITL[Local2])[0]) == HTSP) {
+                if ((derefof(derefof(HITL[Local2])[0]) & 0xFF) == HTSP) {
                     // Is a sphere
                     if (HISP(derefof(HITL[Local2]), Arg0, Arg1, Local1)) {
                         Local0 = 1  // Hit sth
@@ -187,6 +299,7 @@ DefinitionBlock ("", "SSDT", 2, "INOKI", "RAYTRACE", 0x00000001)
                         HITR[4] = derefof(HIT1[4])
                         HITR[5] = derefof(HIT1[5])
                         HITR[6] = derefof(HIT1[6])
+                        HITR[7] = Local2
                     }
                 }
                 Local2 = Local2 + 1
@@ -270,6 +383,86 @@ DefinitionBlock ("", "SSDT", 2, "INOKI", "RAYTRACE", 0x00000001)
             // Ray
             Local5 = \RAY.MAKE(derefof(CVEC[3]), Local4)
             Return (Local5)
+        }
+
+        Method (RIUS) {
+            // Random in unit sphere
+            Local0 = \VEC.MAK0()
+            Local1 = 0
+            while (\SFPU.FGEQ(Local1, 0x3f800000)) {
+                Local2 = \VEC.MAKE(\SFPU.FDIV(\SFPU.IN2F(\SRNG.NEXT()), \SFPU.IN2F(32767)), \SFPU.FDIV(\SFPU.IN2F(\SRNG.NEXT()), \SFPU.IN2F(32767)), \SFPU.FDIV(\SFPU.IN2F(\SRNG.NEXT()), \SFPU.IN2F(32767)))
+                Local0 = \VEC.VSUB(Local2, \VEC.MAKE(0x3f800000, 0x3f800000, 0x3f800000))
+                Local1 = \VEC.VLEN(Local0)
+            }
+            Return (Local0)
+        }
+
+        Name (SCTT, Package () {
+            0, 0, 0, 0, 0, 0    // Ray
+        })
+        Name (ATTN, Package () {
+            0, 0, 0    // Vec
+        })
+
+        Method (MHDD, 2) {
+            // Diffusion material handler
+            // Arg0: ray_in, Arg1: record
+            // Out: attenuation, Out: scattered
+            Local0 = \VEC.MAKE(derefof(Arg1[4]), derefof(Arg1[5]), derefof(Arg1[6]))    // Normal
+            Local2 = \VEC.MAKE(derefof(Arg1[1]), derefof(Arg1[2]), derefof(Arg1[3]))    // P
+            Local3 = \VEC.VADD(Local2, Local0)  // Target
+            Local4 = \VEC.VADD(Local3, RIUS())
+            Local5 = \RAY.MAKE(Local2, \VEC.VSUB(Local4, Local2))   // Ray
+            SCTT[0] = derefof(Local5[0])
+            SCTT[1] = derefof(Local5[1])
+            SCTT[2] = derefof(Local5[2])
+            SCTT[3] = derefof(Local5[3])
+            SCTT[4] = derefof(Local5[4])
+            SCTT[5] = derefof(Local5[5])
+
+            Local6 = derefof(Arg1[7])
+            ATTN[0] = derefof(derefof(HITL[Local6])[5])
+            ATTN[1] = derefof(derefof(HITL[Local6])[6])
+            ATTN[2] = derefof(derefof(HITL[Local6])[7])
+
+            Return (1)
+        }
+
+        Method (RFLT, 2) {
+            Local0 = \VEC.VDOT(Arg0, Arg1)
+            Local1 = \SFPU.FMUL(Local0, \SFPU.IN2F(2))
+            Local2 = \VEC.TMUL(Arg1, Local1)
+            Return (\VEC.VSUB(Arg0, Local2))
+        }
+
+        Method (MHDM, 2) {
+            // Metal material handler
+            // Arg0: ray_in, Arg1: record
+            // Out: attenuation, Out: scattered
+            Local0 = \VEC.MAKE(derefof(Arg1[4]), derefof(Arg1[5]), derefof(Arg1[6]))    // Normal
+            Local2 = \VEC.MAKE(derefof(Arg1[1]), derefof(Arg1[2]), derefof(Arg1[3]))    // P
+
+            Local3 = \VEC.VUNI(\RAY.RDIR(Arg0))
+            Local4 = RFLT(Local3, Local0)  // Reflected
+
+            Local6 = derefof(Arg1[7])
+
+            Local7 = \VEC.TMUL(RIUS(), derefof(derefof(HITL[Local6])[8]))
+            Local7 = \VEC.VADD(Local4, Local7)
+
+            Local5 = \RAY.MAKE(Local2, Local7)   // Ray
+            SCTT[0] = derefof(Local5[0])
+            SCTT[1] = derefof(Local5[1])
+            SCTT[2] = derefof(Local5[2])
+            SCTT[3] = derefof(Local5[3])
+            SCTT[4] = derefof(Local5[4])
+            SCTT[5] = derefof(Local5[5])
+
+            ATTN[0] = derefof(derefof(HITL[Local6])[5])
+            ATTN[1] = derefof(derefof(HITL[Local6])[6])
+            ATTN[2] = derefof(derefof(HITL[Local6])[7])
+
+            Return (\SFPU.FGRT(\VEC.VDOT(\RAY.RDIR(SCTT), Local0), 0))
         }
     }
 }
